@@ -2,6 +2,12 @@
 
 A poem with a growing procedural garden. Plain JavaScript and SVG, built with Vite into one self-contained HTML file. Based on Kevin Raymond's MIT-licensed [Florilegium](https://github.com/kevinraymond/florilegium); the original Lua/LaTeX sources remain intact. See [upstream documentation](README.upstream.md).
 
+## Human Intro
+
+i saw this project and had to make my own adaptation as a standalone webpage. you can play with it online at [shimmermathlabs.com/flower.html](https://shimmermathlabs.com/flower.html)
+
+i wanted to be able to send cute flowery poems to friends. now i can.
+
 ## Run and build
 
 Node.js 22.12+ (or 20.19+).
