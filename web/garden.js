@@ -4,7 +4,7 @@ import { encodeGarden, decodeGarden } from './state.js';
 const $ = s => document.querySelector(s);
 const svg = $('#garden'), page = $('#page'), poem = $('#poem');
 const NS = 'http://www.w3.org/2000/svg';
-let data = {title:'A little seed',author:'A poem for this garden',text:'Leave a little room for light,\nfor the quiet, growing things.\n\nSomething tender in the dark\nis remembering its wings.'};
+let data = {title:'Hymn to Intellectual Beauty',author:'Percy Bysshe Shelley (1817)',text:'I vowed that I would dedicate my powers\nTo thee and thine—have I not kept the vow?'};
 try { const saved=JSON.parse(localStorage.getItem('flowers-poem')); if(saved && ['title','author','text'].every(k=>typeof saved[k]==='string')) data=saved; } catch {}
 const defaults={density:100,size:43,reach:155,speed:1,thorns:0,thornSize:1,flowers:'classic',tips:50,palette:'blue',theme:'paper'};
 const themeInks={paper:'blue',moon:'white',forest:'white',dusk:'lavender'};
