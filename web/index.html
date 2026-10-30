@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flowers · a garden for a poem</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><a href="./" class="brand">flowers<span> a garden for a poem</span></a><nav aria-label="Garden controls"><button id="tune" aria-expanded="false" aria-controls="settings">Tune garden</button><button id="share">Share</button><button id="edit">Your poem</button><button id="pause">Pause</button><button id="grow">Grow again <span aria-hidden="true">↗</span></button></nav></header>
+<section id="settings" hidden aria-label="Garden settings">
+<form id="settings-form">
+<div class="settings-intro"><h2>Tend the garden</h2><p>Branches reach into open space, then unfold into flowers and leaves. Give them a little direction.</p></div>
+<div class="knobs">
+<label for="density">Fullness <output id="density-value" for="density"></output><input id="density" type="range" min="40" max="160" step="10"><small>More attempts to fill the empty spaces.</small></label>
+<label for="size">Flower size <output id="size-value" for="size"></output><input id="size" type="range" min="22" max="64" step="1"><small>The largest bloom; tight spaces get smaller ones.</small></label>
+<label for="reach">Branch reach <output id="reach-value" for="reach"></output><input id="reach" type="range" min="90" max="240" step="5"><small>How far a new branch can stretch.</small></label>
+<label for="speed">Growth speed <output id="speed-value" for="speed"></output><input id="speed" type="range" min="0.5" max="3" step="0.25"><small>Changes timing, not the arrangement.</small></label>
+<label for="thorns">Thorns <output id="thorns-value" for="thorns"></output><input id="thorns" type="range" min="0" max="100" step="10"><small>None to plentiful. Small hooked points along the stems.</small></label>
+<label for="thornSize">Thorn size <output id="thornSize-value" for="thornSize"></output><input id="thornSize" type="range" min="0.5" max="4" step="0.25"><small>From fine prickles to large hooked thorns. Needs Thorns above zero.</small></label>
+<label for="flowers">Flower types<select id="flowers"><option value="classic">Soft blossoms · original</option><option value="mixed">Wild mix · all four</option><option value="daisy">Daisies · fine petals</option><option value="lily">Star lilies · pointed petals</option><option value="rosette">Rosettes · layered petals</option></select><small>Choose a shape or let several grow together.</small></label>
+<label for="tips">Vine-tip detail <output id="tips-value" for="tips"></output><input id="tips" type="range" min="0" max="100" step="10"><small>Add curled tendrils, buds, and tiny flower sprays at leafy ends.</small></label>
+<label for="theme">Page theme<select id="theme"><option value="paper">Daylight · warm paper</option><option value="moon">Moonflower · midnight blue</option><option value="forest">Night garden · forest</option><option value="dusk">Twilight · deep plum</option></select><small>Pairs the page with a matching flower ink.</small></label>
+<label for="palette">Flower ink<select id="palette"><option value="white">Moonflower white</option><option value="lavender">Silver lavender</option><option value="blue">Delft blue</option><option value="green">Sage green</option><option value="plum">Wild plum</option><option value="sepia">Warm sepia</option></select><small>One color, in translucent washes.</small></label>
+</div><div class="settings-bottom"><span>Apply regrows the same seed, so you can compare. Grow again tries a new one.</span><div class="actions"><button id="reset-settings" type="button">Reset</button><button type="submit">Apply &amp; grow ↗</button></div></div>
+</form></section>
+<main id="page"><svg id="garden" aria-hidden="true"></svg><article id="poem" aria-label="Poem"></article></main>
+<footer><span>Words take root. Let the margins bloom.</span><a href="https://github.com/kevinraymond/florilegium">After Florilegium ↗</a></footer>
+<dialog id="editor"><form id="form"><h2>Plant a poem</h2><label for="title">Title</label><input id="title" maxlength="160"><label for="author">Poet</label><input id="author" maxlength="160"><label for="verses">Poem · keep your line breaks</label><textarea id="verses" rows="12" maxlength="6000" required></textarea><div class="actions"><button type="button" id="cancel">Cancel</button><button type="submit">Let it grow ↗</button></div></form></dialog>
+<dialog id="share-dialog"><h2>Share this garden</h2><p>The link includes your poem, applied settings, and garden seed. Opening it replays the growth from the beginning.</p><label for="share-url">Garden link</label><textarea id="share-url" rows="4" readonly></textarea><p id="share-note"></p><p id="share-status" role="status"></p><div class="actions"><button id="close-share">Close</button><button id="copy-link">Copy link</button></div></dialog>
+<p id="link-status" role="status" hidden></p>
+<script type="module" src="garden.js"></script></body></html>
