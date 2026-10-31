@@ -9,3 +9,7 @@ test('unrelated fragments do not replace a garden',()=>assert.equal(decode('#abo
 test('reject malformed, unsupported, excessive or out-of-range state',()=>{
  for(const hash of ['#garden=%ZZ','#garden='+ 'a'.repeat(150001),encodeGarden({...state,seed:-1}),encodeGarden({...state,settings:{...settings,thornSize:99}}),encodeGarden({...state,poem:{...state.poem,text:'a'.repeat(6001)}}),'#garden='+encodeURIComponent(JSON.stringify({...state,v:9}))]) assert.throws(()=>decode(hash));
 });
+test('illuminated palette is preserved in share links',()=>{
+ const illuminated={...state,settings:{...settings,palette:'jewel'}};
+ assert.deepEqual(decodeGarden(encodeGarden(illuminated),settings,{white:[],jewel:[]},{moon:'white'}),illuminated);
+});

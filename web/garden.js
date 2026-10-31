@@ -1,14 +1,15 @@
 /* Browser adaptation of Florilegium's free-space growth idea. MIT; see ../LICENSE. */
 'use strict';
+import { botanicalPaint } from './botanical.js';
 import { encodeGarden, decodeGarden } from './state.js';
 const $ = s => document.querySelector(s);
 const svg = $('#garden'), page = $('#page'), poem = $('#poem');
 const NS = 'http://www.w3.org/2000/svg';
 let data = {title:'Hymn to Intellectual Beauty',author:'Percy Bysshe Shelley (1817)',text:'I vowed that I would dedicate my powers\nTo thee and thine—have I not kept the vow?'};
 try { const saved=JSON.parse(localStorage.getItem('flowers-poem')); if(saved && ['title','author','text'].every(k=>typeof saved[k]==='string')) data=saved; } catch {}
-const defaults={density:100,size:43,reach:155,speed:1,thorns:0,thornSize:1,flowers:'classic',tips:50,palette:'blue',theme:'paper'};
+const defaults={density:100,size:43,reach:155,speed:1,thorns:0,thornSize:1,flowers:'mixed',tips:70,palette:'blue',theme:'paper'};
 const themeInks={paper:'blue',moon:'white',forest:'white',dusk:'lavender'};
-const palettes={white:['#aabfca','#ffffff','#e6edff','#f5f3df','#a9c4d5','#e1c98d'],lavender:['#aab4d6','#eee4ff','#c7b7ed','#e6d7ff','#aaa6cb','#f1d7a3'],blue:['#426e95','#729ac0','#356497','#426d9b','#3e6389','#203e65'],green:['#64856b','#93b59a','#507b61','#4c755b','#52765b','#304c3b'],plum:['#886288','#bb94b8','#895e89','#805780','#765276','#4a334d'],sepia:['#98734f','#c4a77b','#966e47','#8d6540','#826244','#503c2a']};
+const palettes={jewel:['#268c9e','#dceafa','#3053b4','#365894','#447880','#a9854e'],white:['#aabfca','#ffffff','#e6edff','#f5f3df','#a9c4d5','#e1c98d'],lavender:['#aab4d6','#eee4ff','#c7b7ed','#e6d7ff','#aaa6cb','#f1d7a3'],blue:['#426e95','#729ac0','#356497','#426d9b','#3e6389','#203e65'],green:['#64856b','#93b59a','#507b61','#4c755b','#52765b','#304c3b'],plum:['#886288','#bb94b8','#895e89','#805780','#765276','#4a334d'],sepia:['#98734f','#c4a77b','#966e47','#8d6540','#826244','#503c2a']};
 let settings={...defaults};
 try{const saved=JSON.parse(localStorage.getItem('flowers-settings'));if(saved){for(const [key,min,max] of [['density',40,160],['size',22,64],['reach',90,240],['speed',.5,3],['thorns',0,100],['thornSize',.5,4],['tips',0,100]]){if(Number.isFinite(saved[key]))settings[key]=Math.max(min,Math.min(max,saved[key]));}if(['classic','mixed','daisy','lily','rosette'].includes(saved.flowers))settings.flowers=saved.flowers;if(Object.hasOwn(palettes,saved.palette))settings.palette=saved.palette;if(Object.hasOwn(themeInks,saved.theme))settings.theme=saved.theme;}}catch{}
 function syncSettings(){for(const key of Object.keys(defaults))$('#'+key).value=settings[key];updateLabels();}
@@ -44,6 +45,7 @@ function grow(){
  animations.forEach(a=>a.cancel());animations=[];paused=false;$('#pause').textContent='Pause';svg.replaceChildren();
  document.documentElement.dataset.theme=settings.theme;
  const colors=palettes[settings.palette];
+ const art=botanicalPaint(svg,colors,settings.palette,seed);
  const w=page.clientWidth,h=page.clientHeight;svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
  let state=seed;const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
  const bounds=page.getBoundingClientRect();
@@ -53,35 +55,14 @@ function grow(){
  function animate(node,frames,delay,duration){if(reduced)return;animations.push(node.animate(frames,{duration:duration/settings.speed,delay:delay/settings.speed,fill:'both',easing:'ease-in-out'}));}
  const nodes=[{x:24,y:h-24,t:0},{x:w-24,y:h-24,t:150}],occupied=[];
  function motif(x,y,r,t,angle,leaf=false){const g=el('g',{transform:`translate(${x} ${y}) rotate(${angle})`});const inner=el('g',{},g);animate(inner,[{transform:'scale(0)',opacity:0},{transform:'scale(1)',opacity:1}],t,1000);
- if(leaf){el('path',{d:`M 0 0 Q ${-r} ${-r*.6} 0 ${-r} Q ${r*.8} ${-r*.7} 0 0`,fill:colors[0],'fill-opacity':.5},inner);el('path',{d:`M 0 0 Q ${r*.12} ${-r*.7} 0 ${-r*.9}`,stroke:'#f8f5ec','stroke-width':.7,fill:'none'},inner);return;}
- const petals=random()>.5?5:7;
- for(let i=0;i<petals;i++){const a=i*360/petals;const rr=r*(.8+random()*.2);el('path',{d:`M 0 0 C ${-rr*.8} ${-rr*.45} ${-rr*.6} ${-rr*1.1} 0 ${-rr} C ${rr*.65} ${-rr*1.1} ${rr*.75} ${-rr*.35} 0 0`,transform:`rotate(${a})`,fill:i%2?colors[1]:colors[2],'fill-opacity':.42+random()*.2,stroke:colors[3],'stroke-opacity':.2,'stroke-width':.65},inner);el('path',{d:`M 0 -2 Q 3 ${-rr*.4} 0 ${-rr*.82}`,transform:`rotate(${a})`,stroke:'#f8f5ec','stroke-opacity':.65,fill:'none','stroke-width':.8},inner);}
+ if(leaf){art.paint(inner,r,'leaf',Math.round(x*13+y*37));return;}
+ // Consume the original pigment draws so the established growth stream stays stable.
+ const petals=random()>.5?5:7;for(let i=0;i<petals;i++){random();random();}
  const choice=Math.abs(Math.round(x*13+y*37))%4;
  const kind=settings.flowers==='mixed'?['classic','daisy','lily','rosette'][choice]:settings.flowers;
  g.setAttribute('data-flower',kind);
- if(kind!=='classic'){
-  inner.replaceChildren();
-  const layers=kind==='rosette'?3:1;
-  for(let layer=0;layer<layers;layer++){
-   const count=kind==='daisy'?13:kind==='lily'?6:9;
-   const R=r*(1-layer*.25);
-   for(let j=0;j<count;j++){
-    const rotation=j*360/count+layer*21;
-    const shape=kind==='lily'
-     ?`M 0 0 C ${-R*.2} ${-R*.45} ${-R*.16} ${-R*.8} 0 ${-R} C ${R*.18} ${-R*.65} ${R*.35} ${-R*.3} 0 0`
-     :kind==='daisy'
-     ?`M -1 0 C ${-R*.2} ${-R*.45} ${-R*.17} ${-R} 0 ${-R} C ${R*.17} ${-R} ${R*.2} ${-R*.45} 1 0`
-     :`M 0 0 C ${-R*.75} ${-R*.25} ${-R*.55} ${-R*.94} 0 ${-R} C ${R*.6} ${-R*.9} ${R*.65} ${-R*.2} 0 0`;
-    el('path',{d:shape,transform:`rotate(${rotation})`,fill:colors[1+(j+layer)%2],'fill-opacity':.5+layer*.12,stroke:colors[3],'stroke-opacity':.35,'stroke-width':.6},inner);
-    el('path',{d:`M 0 ${-R*.2} Q ${R*.08} ${-R*.55} 0 ${-R*.85}`,transform:`rotate(${rotation})`,fill:'none',stroke:'#f8f5ec','stroke-opacity':.5,'stroke-width':.6},inner);
-    if(kind==='lily'){
-     el('path',{d:`M 0 0 Q 3 ${-R*.2} 1 ${-R*.4}`,transform:`rotate(${rotation+25})`,fill:'none',stroke:colors[5],'stroke-width':.8},inner);
-     el('circle',{cx:1,cy:-R*.4,r:1.3,transform:`rotate(${rotation+25})`,fill:'#c7a567'},inner);
-    }
-   }
-  }
+ art.paint(inner,r,kind,Math.round(x*13+y*37));
  }
- el('circle',{r:r*.12,fill:'#b89658'},inner);for(let i=0;i<8;i++){const a=i*Math.PI/4;el('circle',{cx:Math.cos(a)*r*.2,cy:Math.sin(a)*r*.2,r:1,fill:colors[5]},inner);}}
  function tipDetail(x,y,r,t,angle,variant){
   const root=el('g',{'class':'tip-detail','data-tip':variant,transform:`translate(${x} ${y}) rotate(${angle})`});
   const group=el('g',{},root);
@@ -137,6 +118,17 @@ function grow(){
  }
  // Smaller leaves unfurl along the branch, only where their entire bounds fit.
  for(const i of [7,13]){const p=b.points[i],r=7+random()*5;if(clearance(p.x,p.y)>r*1.8){motif(p.x,p.y,r,t+duration*i/20,Math.atan2(b.y-b.parent.y,b.x-b.parent.x)*180/Math.PI+(i===7?35:145),true);}}
+ }
+ // A few illuminated ornaments in the remaining spaces, never over the poem.
+ let ornaments=0;
+ for(let j=0;j<220&&ornaments<14;j++){
+  const x=30+((j*173+seed*37)%997)/997*(w-60),y=28+((j*293+seed*53)%991)/991*(h-56);
+  const r=6+(j%4)*2;
+  if(clearance(x,y)<r+12||occupied.some(o=>Math.hypot(x-o.x,y-o.y)<o.r+r+10))continue;
+  const g=el('g',{'class':'illumination',transform:`translate(${x} ${y})`}),inside=el('g',{},g);
+  art.jewel(inside,r,ornaments%3?'diamond':'star');
+  animate(inside,[{opacity:0,transform:'scale(.5)'},{opacity:.8,transform:'scale(1)'}],4500+ornaments*180,1500);
+  occupied.push({x,y,r:r+8});ornaments++;
  }
  $('#pause').disabled=reduced;
 }

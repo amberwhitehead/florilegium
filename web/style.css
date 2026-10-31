@@ -8,3 +8,10 @@
 input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
 
 #share-dialog p,#link-status{font:13px/1.6 system-ui,sans-serif;color:var(--secondary)}#share-url{font:12px/1.5 monospace;overflow-wrap:anywhere}#link-status{padding:12px 4%}#copy-link{background:var(--ink);color:var(--paper)}
+
+/* Quiet paper and night-sky washes behind the botanical ink. */
+main{background:radial-gradient(ellipse at 18% 85%,#83a8b010,transparent 55%),radial-gradient(ellipse at 85% 15%,#b6a0c010,transparent 50%)}
+:root[data-theme=moon] main{background:radial-gradient(ellipse at 12% 85%,#17434b55,transparent 60%),radial-gradient(ellipse at 90% 15%,#3c285344,transparent 60%)}
+:root[data-theme=forest] main{background:radial-gradient(ellipse at 10% 85%,#42757430,transparent 60%),radial-gradient(ellipse at 90% 10%,#77713c22,transparent 60%)}
+:root[data-theme=dusk] main{background:radial-gradient(ellipse at 12% 85%,#304d6744,transparent 60%),radial-gradient(ellipse at 90% 10%,#82486b33,transparent 60%)}
+h1{letter-spacing:.26em}.byline{letter-spacing:.035em}#poem h1::before{content:'✧';display:block;font:24px Georgia,serif;color:#b99a61;margin-bottom:20px}

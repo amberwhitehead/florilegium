@@ -43,3 +43,9 @@ The seed reproduces the garden at the same viewport and font metrics. Other scre
 - `origin`: still points to the original upstream repository; no push or hosted fork has been made.
 
 MIT; see LICENSE.
+
+## Illuminated garden
+
+The botanical rendering uses per-petal gradients, clipped pigment washes and speckles, fine veins, and gold stamens. Leaves have directional color washes and branching veins. Each palette contains related color families; Illuminated combines sapphire, teal, and violet. Moonflower white keeps its pale character with subtle blue, pearl-green, and lavender variations. Small gold stars and lozenges settle into free gaps, and page backgrounds carry quiet washes of color.
+
+`web/botanical.js` owns the painted SVG primitives and local pigment randomness. No image assets, external fonts, filters, or network requests are required. Existing shared links remain readable; their gardens use the current renderer, so artistic updates can change the appearance of an older link.
