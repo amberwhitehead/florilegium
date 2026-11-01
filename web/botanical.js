@@ -22,7 +22,7 @@ export function botanicalPaint(svg, colors, palette, seed){
  const gold=node('linearGradient',{id:'gold-ink',x1:'0',y1:'0',x2:'1',y2:'1'},defs);
  for(const [offset,color] of [['0%','#8c693c'],['40%','#e6c986'],['70%','#ae854c'],['100%','#f5dfab']])node('stop',{offset,'stop-color':color},gold);
  let serial=0;
- function paint(parent,r,kind,key){
+ function paint(parent,r,kind,key,unfold){
   let state=(Math.imul(Math.round(key),2654435761)^seed)>>>0;
   const rand=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
   const family=Math.floor(rand()*3), wash=`url(#petal-${family})`;
@@ -37,9 +37,11 @@ export function botanicalPaint(svg, colors, palette, seed){
   const layers=kind==='rosette'?3:1,count=kind==='lily'?6:kind==='daisy'?13:5+(key%2?2:0);
   for(let layer=0;layer<layers;layer++)for(let j=0;j<count;j++){
    const R=r*(1-layer*.25)*(.88+rand()*.12),W=R*(kind==='lily'?.24:kind==='daisy'?.17:.6),rotation=j*360/count+layer*23+(rand()-.5)*9;
-   const g=node('g',{transform:`rotate(${rotation})`},parent);
+   const rotationGroup=node('g',{transform:`rotate(${rotation})`},parent);
+   const g=node('g',{},rotationGroup);if(unfold)unfold(g,layer*count+j);
    const d=`M 0 0 C ${-W} ${-R*.25} ${-W} ${-R*.82} ${R*.035} ${-R} C ${W} ${-R*.85} ${W*.9} ${-R*.23} 0 0 Z`;
    const id=`petal-clip-${serial++}`,clip=node('clipPath',{id},defs);node('path',{d},clip);
+   node('path',{d,fill:ramps[family][2],transform:'translate(.65 .9)','fill-opacity':.18},g);
    node('path',{d,fill:wash,'fill-opacity':.9,stroke:ramps[family][2],'stroke-opacity':.5,'stroke-width':.55},g);
    const detail=node('g',{'clip-path':`url(#${id})`},g);
    // Fine translucent washes and sparse pigment flecks, clipped to each petal.

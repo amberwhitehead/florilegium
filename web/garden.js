@@ -1,24 +1,25 @@
 /* Browser adaptation of Florilegium's free-space growth idea. MIT; see ../LICENSE. */
 'use strict';
+import { drawVisitor } from './visitors.js';
 import { botanicalPaint } from './botanical.js';
-import { encodeGarden, decodeGarden } from './state.js';
+import { encodeGarden, decodeGarden, visitorSettings } from './state.js';
 const $ = s => document.querySelector(s);
 const svg = $('#garden'), page = $('#page'), poem = $('#poem');
 const NS = 'http://www.w3.org/2000/svg';
 let data = {title:'Hymn to Intellectual Beauty',author:'Percy Bysshe Shelley (1817)',text:'I vowed that I would dedicate my powers\nTo thee and thine—have I not kept the vow?'};
 try { const saved=JSON.parse(localStorage.getItem('flowers-poem')); if(saved && ['title','author','text'].every(k=>typeof saved[k]==='string')) data=saved; } catch {}
-const defaults={density:100,size:43,reach:155,speed:1,thorns:0,thornSize:1,flowers:'mixed',tips:70,palette:'blue',theme:'paper'};
+const defaults={vine:1,butterflies:2,birds:2,bees:2,snails:2,density:100,size:43,reach:155,speed:1,thorns:0,thornSize:1,flowers:'mixed',tips:70,palette:'blue',theme:'paper'};
 const themeInks={paper:'blue',moon:'white',forest:'white',dusk:'lavender'};
 const palettes={jewel:['#268c9e','#dceafa','#3053b4','#365894','#447880','#a9854e'],white:['#aabfca','#ffffff','#e6edff','#f5f3df','#a9c4d5','#e1c98d'],lavender:['#aab4d6','#eee4ff','#c7b7ed','#e6d7ff','#aaa6cb','#f1d7a3'],blue:['#426e95','#729ac0','#356497','#426d9b','#3e6389','#203e65'],green:['#64856b','#93b59a','#507b61','#4c755b','#52765b','#304c3b'],plum:['#886288','#bb94b8','#895e89','#805780','#765276','#4a334d'],sepia:['#98734f','#c4a77b','#966e47','#8d6540','#826244','#503c2a']};
 let settings={...defaults};
-try{const saved=JSON.parse(localStorage.getItem('flowers-settings'));if(saved){for(const [key,min,max] of [['density',40,160],['size',22,64],['reach',90,240],['speed',.5,3],['thorns',0,100],['thornSize',.5,4],['tips',0,100]]){if(Number.isFinite(saved[key]))settings[key]=Math.max(min,Math.min(max,saved[key]));}if(['classic','mixed','daisy','lily','rosette'].includes(saved.flowers))settings.flowers=saved.flowers;if(Object.hasOwn(palettes,saved.palette))settings.palette=saved.palette;if(Object.hasOwn(themeInks,saved.theme))settings.theme=saved.theme;}}catch{}
+try{const saved=JSON.parse(localStorage.getItem('flowers-settings'));if(saved){Object.assign(settings,visitorSettings(saved,defaults));for(const [key,min,max] of [['density',40,160],['size',22,64],['reach',90,240],['speed',.5,3],['thorns',0,100],['thornSize',.5,4],['tips',0,100],['vine',.4,3]]){if(Number.isFinite(saved[key]))settings[key]=Math.max(min,Math.min(max,saved[key]));}if(['classic','mixed','daisy','lily','rosette'].includes(saved.flowers))settings.flowers=saved.flowers;if(Object.hasOwn(palettes,saved.palette))settings.palette=saved.palette;if(Object.hasOwn(themeInks,saved.theme))settings.theme=saved.theme;}}catch{}
 function syncSettings(){for(const key of Object.keys(defaults))$('#'+key).value=settings[key];updateLabels();}
-function updateLabels(){for(const key of ['density','size','reach','speed','thorns','thornSize','tips'])$('#'+key+'-value').textContent=key==='thorns'&&Number($('#'+key).value)===0?'None':$('#'+key).value+({density:'%',size:' px',reach:' px',speed:'×',thorns:'%',thornSize:'×',tips:'%'}[key]);}
+function updateLabels(){for(const key of ['density','size','reach','speed','thorns','thornSize','tips','vine','butterflies','birds','bees','snails'])$('#'+key+'-value').textContent=key==='thorns'&&Number($('#'+key).value)===0?'None':$('#'+key).value+({density:'%',size:' px',reach:' px',speed:'×',thorns:'%',thornSize:'×',tips:'%',vine:'×',butterflies:'',birds:'',bees:'',snails:''}[key]);}
 $('#tune').onclick=()=>{const open=$('#settings').hidden;$('#settings').hidden=!open;$('#tune').setAttribute('aria-expanded',String(open));};
 $('#settings-form').oninput=updateLabels;
 $('#theme').onchange=()=>{$('#palette').value=themeInks[$('#theme').value];};
 function saveSettings(){try{localStorage.setItem('flowers-settings',JSON.stringify(settings));}catch{}grow();}
-$('#settings-form').onsubmit=e=>{e.preventDefault();for(const key of ['density','size','reach','speed','thorns','thornSize','tips'])settings[key]=Number($('#'+key).value);settings.flowers=$('#flowers').value;settings.palette=$('#palette').value;settings.theme=$('#theme').value;saveSettings();};
+$('#settings-form').onsubmit=e=>{e.preventDefault();for(const key of ['density','size','reach','speed','thorns','thornSize','tips','vine','butterflies','birds','bees','snails'])settings[key]=Number($('#'+key).value);settings.flowers=$('#flowers').value;settings.palette=$('#palette').value;settings.theme=$('#theme').value;saveSettings();};
 $('#reset-settings').onclick=()=>{settings={...defaults};syncSettings();saveSettings();};
 syncSettings();
 let seed=17, animations=[], paused=false, timer;
@@ -52,7 +53,8 @@ function grow(){
  const obstacles=[...poem.querySelectorAll('.word,h1,.byline')].filter(n=>n.textContent).flatMap(n=>[...n.getClientRects()].map(r=>({x:r.left-bounds.left-12,y:r.top-bounds.top-9,w:r.width+24,h:r.height+18})));
  const clearance=(x,y)=>Math.min(x-12,w-x-12,y-14,h-y-14,...obstacles.map(r=>Math.hypot(Math.max(r.x-x,0,x-r.x-r.w),Math.max(r.y-y,0,y-r.y-r.h))));
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- function animate(node,frames,delay,duration){if(reduced)return;animations.push(node.animate(frames,{duration:duration/settings.speed,delay:delay/settings.speed,fill:'both',easing:'ease-in-out'}));}
+ function animate(node,frames,delay,duration){if(reduced)return;const a=node.animate(frames,{duration:duration/settings.speed,delay:delay/settings.speed,fill:'both',easing:'ease-in-out'});animations.push(a);a.onfinish=()=>{a.commitStyles();a.cancel();animations=animations.filter(item=>item!==a);if(node.tagName.toLowerCase()==='path'){node.style.strokeDasharray='none';node.style.strokeDashoffset='0';}};}
+ const perches=[];
  const nodes=[{x:24,y:h-24,t:0},{x:w-24,y:h-24,t:150}],occupied=[];
  function motif(x,y,r,t,angle,leaf=false){const g=el('g',{transform:`translate(${x} ${y}) rotate(${angle})`});const inner=el('g',{},g);animate(inner,[{transform:'scale(0)',opacity:0},{transform:'scale(1)',opacity:1}],t,1000);
  if(leaf){art.paint(inner,r,'leaf',Math.round(x*13+y*37));return;}
@@ -61,7 +63,7 @@ function grow(){
  const choice=Math.abs(Math.round(x*13+y*37))%4;
  const kind=settings.flowers==='mixed'?['classic','daisy','lily','rosette'][choice]:settings.flowers;
  g.setAttribute('data-flower',kind);
- art.paint(inner,r,kind,Math.round(x*13+y*37));
+ art.paint(inner,r,kind,Math.round(x*13+y*37),(n,j)=>animate(n,[{transform:'scale(.08,.2)',opacity:0},{transform:'scale(1.04,.97)',opacity:1,offset:.82},{transform:'scale(1)',opacity:1}],t+200+j*55,1100));
  }
  function tipDetail(x,y,r,t,angle,variant){
   const root=el('g',{'class':'tip-detail','data-tip':variant,transform:`translate(${x} ${y}) rotate(${angle})`});
@@ -91,12 +93,22 @@ function grow(){
  const dx=x-parent.x,dy=y-parent.y,bend=(random()-.5)*distance*.5;
  const cx=(parent.x+x)/2-dy/distance*bend,cy=(parent.y+y)/2+dx/distance*bend;
  const points=Array.from({length:21},(_,i)=>{const u=i/20;return {x:(1-u)**2*parent.x+2*(1-u)*u*cx+u*u*x,y:(1-u)**2*parent.y+2*(1-u)*u*cy+u*u*y};});
- if(points.some(p=>clearance(p.x,p.y)<3))continue;
+ if(points.some(p=>clearance(p.x,p.y)<Math.max(3,settings.vine*2)))continue;
  const score=radius+distance*.12+random()*8;if(!best||score>best.score)best={x,y,radius,parent,cx,cy,points,score,distance};}
  if(!best)continue;
  const b=best,t=b.parent.t+250,duration=b.distance*7+350;
- const path=el('path',{d:`M ${b.parent.x} ${b.parent.y} Q ${b.cx} ${b.cy} ${b.x} ${b.y}`,fill:'none',stroke:colors[4],'stroke-opacity':.67,'stroke-width':step<15?1.6:1,'stroke-linecap':'round'});
- const length=path.getTotalLength();animate(path,[{strokeDasharray:`${length}`,strokeDashoffset:length},{strokeDasharray:`${length}`,strokeDashoffset:0}],t,duration);
+ const width=settings.vine*(step<14?3.4:step<55?2:1.1);
+ // Layered, tapering segments give stems a shaded cylindrical surface.
+ for(let j=0;j<20;j+=4){
+  const a=b.points[j],z=b.points[j+4],u=j/20;
+  for(const [factor,color,opacity] of [[1,colors[4],.9],[.42,colors[0],.65],[.14,colors[1],.65]]){
+   const dx=z.x-a.x,dy=z.y-a.y,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+   const start=width*(1-u*.65)*factor/2,end=width*(1-(u+.2)*.65)*factor/2;
+   const path=el('path',{'class':'vine',d:`M ${a.x+nx*start} ${a.y+ny*start} L ${z.x+nx*end} ${z.y+ny*end} L ${z.x-nx*end} ${z.y-ny*end} L ${a.x-nx*start} ${a.y-ny*start} Z`,fill:color,'fill-opacity':opacity});
+   animate(path,[{opacity:0},{opacity:1}],t+duration*u,duration/5+40);
+  }
+ }
+ perches.push({...b.points[12],t:t+duration*.6});
  b.points.forEach((p,i)=>{if(i%5===0)nodes.push({...p,t:t+duration*i/20});});
  const radius=b.radius*.85;occupied.push({x:b.x,y:b.y,r:radius+4});const angle=random()*360,leaf=step>10&&random()<.45;
  const tipHash=(Math.imul(step+7,2654435761)^seed)>>>0;
@@ -118,6 +130,23 @@ function grow(){
  }
  // Smaller leaves unfurl along the branch, only where their entire bounds fit.
  for(const i of [7,13]){const p=b.points[i],r=7+random()*5;if(clearance(p.x,p.y)>r*1.8){motif(p.x,p.y,r,t+duration*i/20,Math.atan2(b.y-b.parent.y,b.x-b.parent.x)*180/Math.PI+(i===7?35:145),true);}}
+ }
+ // Reserve collision-free pockets for visitors after the garden is laid out.
+ let arrived=0;
+ for(const [key,kind] of [['butterflies','butterfly'],['birds','bird'],['bees','bee'],['snails','snail']]){
+ let placed=0;
+ for(let k=0;k<1600&&placed<settings[key];k++){
+  const r=kind==='bird'?25:kind==='bee'?15:21;
+  const perch=perches[(k*37+seed)%perches.length];if(!perch)break;
+  const grounded=kind==='bird'||kind==='snail';
+  const x=grounded?perch.x:30+((k*173+seed*23)%997)/997*(w-60);
+  const y=grounded?perch.y-r*.44:30+((k*257+seed*41)%991)/991*(h-60);
+  if(clearance(x,y)<r+5||occupied.some(o=>Math.hypot(x-o.x,y-o.y)<(grounded?o.r*.55+r*.4:o.r+r*.65)))continue;
+  const group=el('g',{'class':'visitor','data-visitor':kind,transform:`translate(${x} ${y}) scale(${r})`});
+  const animal=el('g',{},group);drawVisitor(animal,kind,el);
+  animate(animal,[{opacity:0,transform:'scale(.65)'},{opacity:1,transform:'scale(1)'}],Math.max(4000,perch.t+900)+arrived*250,1300);
+  occupied.push({x,y,r:r+5});arrived++;placed++;
+ }
  }
  // A few illuminated ornaments in the remaining spaces, never over the poem.
  let ornaments=0;

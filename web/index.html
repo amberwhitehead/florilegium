@@ -7,6 +7,11 @@
 <form id="settings-form">
 <div class="settings-intro"><h2>Tend the garden</h2><p>Branches reach into open space, then unfold into flowers and leaves. Give them a little direction.</p></div>
 <div class="knobs">
+<label for="vine">Vine weight <output id="vine-value" for="vine"></output><input id="vine" type="range" min="0.4" max="3" step="0.1"><small>Hairline stems to substantial, shaded vines.</small></label>
+<label for="birds">Birds <output id="birds-value" for="birds"></output><input id="birds" type="range" min="0" max="8" step="1"><small>Perched among the vines. Set to zero to leave them out.</small></label>
+<label for="snails">Snails <output id="snails-value" for="snails"></output><input id="snails" type="range" min="0" max="8" step="1"><small>Nestled on stems. Set to zero to leave them out.</small></label>
+<label for="bees">Bees <output id="bees-value" for="bees"></output><input id="bees" type="range" min="0" max="8" step="1"><small>In the gaps between flowers. Set to zero to leave them out.</small></label>
+<label for="butterflies">Butterflies <output id="butterflies-value" for="butterflies"></output><input id="butterflies" type="range" min="0" max="8" step="1"><small>Among the open blossoms. Set to zero to leave them out.</small></label>
 <label for="density">Fullness <output id="density-value" for="density"></output><input id="density" type="range" min="40" max="160" step="10"><small>More attempts to fill the empty spaces.</small></label>
 <label for="size">Flower size <output id="size-value" for="size"></output><input id="size" type="range" min="22" max="64" step="1"><small>The largest bloom; tight spaces get smaller ones.</small></label>
 <label for="reach">Branch reach <output id="reach-value" for="reach"></output><input id="reach" type="range" min="90" max="240" step="5"><small>How far a new branch can stretch.</small></label>

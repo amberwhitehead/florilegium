@@ -1,3 +1,15 @@
+export const visitorKeys=['butterflies','birds','bees','snails'];
+export function visitorSettings(input, fallback={}) {
+ const result={};
+ if(input.visitors!==undefined && (!Number.isInteger(input.visitors)||input.visitors<0||input.visitors>16))throw new Error('Invalid visitor count.');
+ visitorKeys.forEach((key,i)=>{
+  const legacy=input.visitors===undefined?(fallback[key]??2):Math.floor(input.visitors/4)+(i<input.visitors%4?1:0);
+  const value=input[key]??legacy;
+  if(!Number.isInteger(value)||value<0||value>8)throw new Error('Invalid visitor count.');
+  result[key]=value;
+ });
+ return result;
+}
 // Versioned, dependency-free link format. The fragment stays in the browser.
 export function encodeGarden(state) {
   return '#garden=' + encodeURIComponent(JSON.stringify({v:1, ...state}));
@@ -15,7 +27,10 @@ export function decodeGarden(hash, defaults, palettes, themes) {
     if(!Number.isFinite(input[key]) || input[key]<min || input[key]>max) throw new Error('Invalid garden settings.');
     settings[key]=input[key];
   }
+  for(const [key,min,max] of [['vine',.4,3]]){if(input[key]!==undefined){if(!Number.isFinite(input[key])||input[key]<min||input[key]>max)throw new Error('Invalid garden settings.');settings[key]=input[key];}}
   if(!Object.hasOwn(palettes,input.palette) || !Object.hasOwn(themes,input.theme) || !['classic','mixed','daisy','lily','rosette'].includes(input.flowers)) throw new Error('Unknown garden style.');
   for(const key of ['palette','theme','flowers']) settings[key]=input[key];
+  Object.assign(settings,visitorSettings(input,defaults));
+  delete settings.visitors;
   return {poem:{title:poem.title,author:poem.author,text:poem.text},settings,seed:value.seed};
 }
